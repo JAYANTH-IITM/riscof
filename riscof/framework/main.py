@@ -23,7 +23,8 @@ pp = pprint.PrettyPrinter(indent=4)
 logger = logging.getLogger(__name__)
 
 def filter_coverage(cgf_file,ispec,pspec,results):
-    cgf = load_cgf(cgf_file)
+    #print("filter coverage 3")
+    cgf = load_cgf(cgf_file)       #load the cgf file for ctg 
     spec = {**ispec,**pspec}
     cover_points = []
     for key,node in cgf.items():
@@ -77,6 +78,7 @@ def find_elf_size(elf):
         return (sum([segment['p_memsz'] for segment in elffile.iter_segments()]),code_size,data_size,sign_size)
 
 def run_coverage(base, dut_isa_spec, dut_platform_spec, work_dir, cgf_file=None):
+    #print("run coverage 2")
     '''
         Entry point for the framework module. This function initializes and sets up the required
         variables for the tests to run.
@@ -115,6 +117,9 @@ def run_coverage(base, dut_isa_spec, dut_platform_spec, work_dir, cgf_file=None)
 
 
     logger.info("Merging Coverage reports")
+    #
+    #print("printing here")
+    #print(file_path)
     cov_files = []
     test_stats = []
     for entry in test_pool:
@@ -131,6 +136,9 @@ def run_coverage(base, dut_isa_spec, dut_platform_spec, work_dir, cgf_file=None)
         flen = 32
     if 'D' in ispec['ISA']:
         flen = 64
+    elif 'Sdtrig' in ispec['ISA']:
+        flen = 0
+    
     if 64 in ispec['supported_xlen']:
         results = isac.merge_coverage(cov_files, expand_cgf(cgf_file,64,flen), True)
     elif 32 in ispec['supported_xlen']:
@@ -153,10 +161,12 @@ def run_coverage(base, dut_isa_spec, dut_platform_spec, work_dir, cgf_file=None)
                 'percentage': percentage,
                 }
         for_html.append(res)
+    
 
     return results, for_html, test_stats, coverpoints
 
-def run(dut, base, dut_isa_spec, dut_platform_spec, work_dir, cntr_args):
+
+def run(dut, base, dut_isa_spec, dut_platform_spec, work_dir, cntr_args,signature_data):
     '''
         Entry point for the framework module. This function initializes and sets up the required
         variables for the tests to run.
@@ -184,6 +194,9 @@ def run(dut, base, dut_isa_spec, dut_platform_spec, work_dir, cntr_args):
 #    work_dir = constants.work_dir
 
     # Setting up models
+    #print("run main.py 1")
+    
+
     dut.initialise(constants.suite, work_dir, constants.env)
     base.initialise(constants.suite, work_dir, constants.env)
     #Loading Specs
@@ -202,9 +215,18 @@ def run(dut, base, dut_isa_spec, dut_platform_spec, work_dir, cntr_args):
         logger.info("Running Build for Reference")
         base.build(dut_isa_spec, dut_platform_spec)
 
-    results = test.run_tests(dut, base, ispec['hart0'], pspec, work_dir, cntr_args)
 
+    results = test.run_tests(dut, base, ispec['hart0'], pspec, work_dir, cntr_args,signature_data)
+    
+    #print("result in main.py",results)
     return results
+
+#def run(dut, base, dut_isa_spec, dut_platform_spec, work_dir, cntr_args,signature_data):
+   
+    #results = test.run_tests_sig(signature_data)
+    
+    
+    #return sig
 
 
 if __name__ == '__main__':

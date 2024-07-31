@@ -23,6 +23,7 @@ class TestSelectError(Exception):
     pass
 
 def compare_signature(file1, file2):
+    #print("5 in test.py")
     '''
         Function to check whether two signature files are equivalent. This funcion uses the
         :py:mod:`difflib` to perform the comparision and obtain the difference.
@@ -76,12 +77,14 @@ def compare_signature(file1, file2):
     return status, res
 
 def get_node(spec,node):
+    #print("6 in test.py")    
     keys = node.split(">")
     for key in keys:
         spec = spec[key]
     return spec
 
 def eval_cond(condition, spec):
+    #print("7 in test.py")
     '''
         Function to evaluate the "check" statements in the database entry and return the macro string.
 
@@ -144,6 +147,7 @@ def eval_cond(condition, spec):
             return False
 
 def getlegal(spec,dep_vals,num,node):
+    #print("8 in test.py")
     end_vals = []
     csrname = node.split('>')[0]
     try:
@@ -165,6 +169,7 @@ def getlegal(spec,dep_vals,num,node):
     return end_vals
 
 def range_writable(spec, dep_vals, bits, node):
+    #print("9 in test.py")
     csrname = node.split('>')[0]
     try:
         csrnode = get_node(spec,node)
@@ -188,6 +193,7 @@ def range_writable(spec, dep_vals, bits, node):
         return False
 
 def getillegal(spec,dep_vals,num,node):
+    #print("10 in test.py")
     csrname = node.split('>')[0]
     try:
         csrnode = get_node(spec,node)
@@ -213,6 +219,7 @@ def getillegal(spec,dep_vals,num,node):
     return end_vals
 
 def eval_macro(macro, spec):
+    #print("4 in test.py")
     '''
         Function to evaluate the "def" statements in the database entry and return the macro string.
 
@@ -250,6 +257,7 @@ def eval_macro(macro, spec):
         return (False,[])
 
 def prod_isa(dut_isa, test_isa):
+    #print("3 in test.py")
     '''
         Function to generate the isa a test has to be compiled with. The various possible ISAs a
         test can be compiled with is compared with the ISA defined in the DUT specification.
@@ -280,6 +288,7 @@ def prod_isa(dut_isa, test_isa):
     return ''
 
 def generate_test_pool(ispec, pspec, workdir, dbfile = None):
+    #print("2 in test.py")
     '''
         Funtion to select the tests which are applicable for the DUT and generate the macros
         necessary for each test.
@@ -335,15 +344,23 @@ def generate_test_pool(ispec, pspec, workdir, dbfile = None):
                 macros.append("FLEN=64")
             elif re.match(r"^[^(Z,z)]+F.*$",isa):
                 macros.append("FLEN=32")
+            elif re.match(r"^[^(Z,z)]+Zicsr.*$",isa):
+                if re.match(r"^[^(S,s)]+Sdtrig.*$",isa):
+                    macros.append("FLEN=0")
+            #test_pool.append(
+                #(file, db[file]['commit_id'], macros,isa,cov_labels))
             test_pool.append(
                 (file, db[file]['commit_id'], macros,isa,cov_labels))
     logger.info("Selecting Tests.")
     for entry in test_pool:
-        # logger.info("Test file:" + entry[0])
+        #print("inside for loop")
+        #logger.info("Test file:" + entry[0])
         temp = {}
         if constants.suite in entry[0]:
+            #print("inside if loop?")
             work_dir = os.path.join(workdir,entry[0].replace(constants.suite, '')[1:])
         else:
+            #print("inside else loop ?")
             work_dir = os.path.join(workdir,entry[0].replace("suite/", ''))
         Path(work_dir).mkdir(parents=True, exist_ok=True)
         temp['commit_id']=entry[1]
@@ -366,8 +383,92 @@ def generate_test_pool(ispec, pspec, workdir, dbfile = None):
 
     return (test_list, test_pool)
 
+def read_signature_file(file_path):
+    
+    signature_data = []
+    with open(file_path, 'r') as file:
+        for line in file:
+            signature_data.append(line)
+            if 'deadbeef' in line:
+                break
+    return signature_data
 
-def run_tests(dut, base, ispec, pspec, work_dir, cntr_args):
+
+def clean_data(signature_data):
+    return signature_data[1:-1]
+
+def find_mstatus(signature_data):
+    mstatus = None
+    for v in signature_data:
+        if v.strip() == '00001800':
+            mstatus = v.strip()
+            break
+        else:
+            mstatus = 'No Value Found'
+    return (mstatus)
+    
+def find_tinfo(signature_data):
+    tinfo = None
+    for v in signature_data:
+        if v.strip() == '0100807c':
+            tinfo = v.strip()
+            break
+        else:
+            tinfo = 'No Value Found'
+    return (tinfo)
+
+def find_tselect(signature_data):
+    tselect = None
+    for v in signature_data:
+        if v.strip() == '00000000':
+            tselect = v.strip()
+            break
+        else:
+            tselect = 'No Value Found'
+    return (tselect)
+
+def find_tcontrol(signature_data):
+    tcontrol = None
+    for v in signature_data:
+        if v.strip() == '00000008':
+            tcontrol = v.strip()
+            break
+        else:
+            tcontrol = 'No Value Found'
+    return (tcontrol)
+
+def find_tdata1_bt(signature_data):
+    tdata1 = None
+    for v in signature_data:
+        if v.strip() == '6000005c':
+            tdata1_bt = v.strip()
+            break
+        else:
+            tdata1_bt = 'No Value Found'
+    return (tdata1_bt)
+
+def find_tdata2(signature_data):
+    tdata2 = None
+    for v in signature_data:
+        if v.strip() == '80002000':
+            tdata2 = v.strip()
+            break
+        else:
+            tdata2 = 'No Value Found'
+    return (tdata2)
+
+def find_mcause(signature_data):
+    mcause = None
+    for v in signature_data:
+        if v.strip() == '00000003':
+            mcause = v.strip()
+            break
+        else:
+            mcause = 'breakpoint exception has not occurred'
+    return (mcause)
+
+def run_tests(dut, base, ispec, pspec, work_dir, cntr_args,signature_data):
+    #print("run_test 1 in test.py")
     '''
         Function to run the tests for the DUT.
 
@@ -388,13 +489,18 @@ def run_tests(dut, base, ispec, pspec, work_dir, cntr_args):
         :return: A list of dictionary objects containing the necessary information
             required to generate the report.
     '''
+
     if cntr_args[1] is not None:
+        print("1st")
         test_list = utils.load_yaml(cntr_args[1])
     else:
         test_list, test_pool = generate_test_pool(ispec, pspec, work_dir, cntr_args[0])
     dut_test_list = {}
+
     base_test_list = {}
+
     for entry in test_list:
+
         node = test_list[entry]
         dut_test_list[entry] = deepcopy(node)
         base_test_list[entry] = deepcopy(node)
@@ -404,28 +510,47 @@ def run_tests(dut, base, ispec, pspec, work_dir, cntr_args):
         os.mkdir(base_test_list[entry]['work_dir'])
     results = []
     if cntr_args[2]:
-        logger.info("Running Tests on DUT.")
+
         dut.runTests(dut_test_list)
-        logger.info("Tests run on DUT done.")
+
         raise SystemExit(0)
     elif cntr_args[3]:
-        logger.info("Running Tests on Reference Model.")
-        base.runTests(base_test_list)
-        logger.info("Tests run on Reference done.")
-        raise SystemExit(0)
-    else:
-        logger.info("Running Tests on DUT.")
-        dut.runTests(dut_test_list)
-        logger.info("Running Tests on Reference Model.")
+
         base.runTests(base_test_list)
 
+        raise SystemExit(0)
+    else:
+
+        dut.runTests(dut_test_list)
+
+        base.runTests(base_test_list)
+    
     logger.info("Initiating signature checking.")
+    #print("test list : ",test_list)
     for file in test_list:
         testentry = test_list[file]
+        #print(testentry)
         work_dir = testentry['work_dir']
         res = os.path.join(dut_test_list[file]['work_dir'],dut.name[:-1]+".signature")
+        #print(res)
         ref = os.path.join(base_test_list[file]['work_dir'],base.name[:-1]+".signature")
         result, diff = compare_signature(res, ref)
+
+        signature_data = read_signature_file(res) #sig_data is in list type
+        #print("\n")
+        #print(type(signature_data))
+        signature_data = clean_data(signature_data)
+        #print(signature_data)
+        #a = convert_list_to_str(signature_data)
+        #print(a)
+        mstatus = find_mstatus(signature_data)
+        tinfo = find_tinfo(signature_data)
+        tselect = find_tselect(signature_data)
+        tcontrol = find_tcontrol(signature_data)
+        tdata1_bt = find_tdata1_bt(signature_data)
+        tdata2 = find_tdata2(signature_data)
+        mcause = find_mcause(signature_data)
+
         res = {
             'name':
             file,
@@ -434,24 +559,43 @@ def run_tests(dut, base, ispec, pspec, work_dir, cntr_args):
             'commit_id':
             testentry['commit_id'],
             'log':
-            'commit_id:' + testentry['commit_id'] + "\nMACROS:\n" + "\n".join(testentry['macros']) +
+            'commit_id:' + testentry['commit_id'] + "\nMACROS:\n" + "\n".join(testentry['macros']) + '\nsignature: \n' +  '\nmstatus: ' + mstatus + '\ntinfo: ' + tinfo + \
+            '\ntselect: ' + tselect + '\ntcontrol: ' + tcontrol + '\ntdata1 before trigger : ' + tdata1_bt + '\ntdata2: ' + tdata2 + '\nmcause: ' + mcause +
             ("" if result == "Passed" else diff),
             'path':
             work_dir,
+            #'sig':
+            #signature_data
             'repclass':
             result.lower()
         }
+        #print(res)
         results.append(res)
+    #print(testentry)
+
+    #print("before signature check result is : \n")
+    #print(results)
 
     logger.info('Following ' + str(len(test_list)) + ' tests have been run :\n')
     logger.info('{0:<50s} : {1:<40s} : {2}'.format('TEST NAME', 'COMMIT ID',
                                                    'STATUS'))
     for res in results:
         if (res['res'] == 'Passed'):
+            #print("am i here ?")
             logger.info('{0:<50s} : {1:<40s} : {2}'.format(\
                 res['name'], res['commit_id'], res['res']))
         else:
+            #print("or i am here ? ")
             logger.error('{0:<50s} : {1:<40s} : {2}'.format(\
                 res['name'], res['commit_id'], res['res']))
+    
+    #logger.info("Appending Signature Results")
+    #file_path = work_dir + '/address-match.S/dut/DUT-spike.signature'
+    #signature_data = [1]
+    #print(signature_data)
+    #print("signature check the result is : \n")
+    #results.append(signature_data)
+    #print(results)
 
     return results
+
