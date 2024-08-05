@@ -22,7 +22,6 @@ class spike_parallel(pluginTemplate):
     __version__ = "XXX"
 
     def __init__(self, *args, **kwargs):
-        #print("1 in rsp.py")
         sclass = super().__init__(*args, **kwargs)
 
         config = kwargs.get('config')
@@ -47,7 +46,6 @@ class spike_parallel(pluginTemplate):
         return sclass
 
     def initialise(self, suite, work_dir, archtest_env):
-        #print("2 in rsp.py")
         self.work_dir = work_dir
 
         #TODO: The following assumes you are using the riscv-gcc toolchain. If
@@ -65,7 +63,6 @@ class spike_parallel(pluginTemplate):
         # for your plugin.
 
     def build(self, isa_yaml, platform_yaml):
-        #print("3 in rsp.py")
         ispec = utils.load_yaml(isa_yaml)['hart0']
         self.xlen = ('64' if 64 in ispec['supported_xlen'] else '32')
         self.isa = 'rv' + self.xlen
@@ -117,12 +114,8 @@ class spike_parallel(pluginTemplate):
             self.isa += '_Zcd'
             self.flen = '64'
         if "Sdtrig" in ispec['ISA']:
-            #print("Inisde the ISA sdtrig if loop \n")
-            #print("before appending : " , self.isa)
             self.isa += 'sdtrig'
             self.flen = '0'
-            #print("\n")
-            #print("after appending isa : ",self.isa)
             
 
 
@@ -141,14 +134,12 @@ class spike_parallel(pluginTemplate):
         # build your RTL here
 
     def runTests(self, testList, cgf_file=None):
-        #print("4 in rsp.py")
         make = utils.makeUtil(makefilePath=os.path.join(self.work_dir, "Makefile." + self.name[:-1]))
         make.makeCommand = self.make + ' -j' + self.num_jobs
         for file in testList:
             testentry = testList[file]
             test = testentry['test_path']
             test_dir = testentry['work_dir']
-            #print(cgf_file)
             if cgf_file is not None:
                 elf = 'ref.elf'
             else:

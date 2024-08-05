@@ -37,7 +37,7 @@ class Context:
     platform_file = None
 
 def setup_directories(work_dir,skip_rm=False):
-    #print("1 in cli.py")
+
     #Creating work directory
     if not os.path.exists(work_dir):
         logger.debug('Creating new work directory: ' + work_dir)
@@ -49,7 +49,6 @@ def setup_directories(work_dir,skip_rm=False):
         os.mkdir(work_dir)
 
 def read_config(configfile):
-    #print("2 in cli.py")
     config = configparser.ConfigParser()
     logger.info("Reading configuration from: "+configfile)
     try:
@@ -60,7 +59,6 @@ def read_config(configfile):
     return config,os.path.dirname(os.path.abspath(configfile))
 
 def prepare_models(config_dir,config):
-    #print("3 in cli.py")
     riscof_config = config['RISCOF']
     logger.info("Preparing Models")
     try:
@@ -102,12 +100,10 @@ def prepare_models(config_dir,config):
     return dut,base
 
 def opt_to_name(opt):
-    #print("4 in cli.py")
     return (opt.replace("--","",1)).replace("-","_")
 
 class CustomOption(click.Option):
     def __init__(self, *args, **kwargs):
-        #print("5 in cli.py")
         self.mutually_exclusive = set([opt_to_name(a) for a in kwargs.pop('mutually_exclusive', [])])
         self.requires = [set([opt_to_name(x) for x in a]) for a in kwargs.pop('requires', []) if a]
         help = kwargs.get('help', '')
@@ -126,7 +122,6 @@ class CustomOption(click.Option):
         super(CustomOption, self).__init__(*args, **kwargs)
 
     def handle_parse_result(self, ctx, opts, args):
-        #print("6 in cli.py")
         if self.mutually_exclusive.intersection(opts) and self.name in opts:
             raise click.UsageError(
                 "Illegal usage: `{}` is mutually exclusive with "
@@ -157,7 +152,6 @@ class CustomOption(click.Option):
 @click.option('--verbose', '-v', default='info', help='Set verbose level', type=click.Choice(['info','error','debug'],case_sensitive=False))
 @click.pass_context
 def cli(ctx,verbose):
-    #print("7 in cli.py")
     logger.level(verbose)
     logger.info('****** RISCOF: RISC-V Architectural Test Framework {0} *******'.format(__version__ ))
     logger.info('using riscv_isac version : ' + str(riscv_isac.__version__))
@@ -176,7 +170,6 @@ def cli(ctx,verbose):
         help='Path to the work directory.')
 @click.pass_context
 def validate(ctx,config,work_dir):
-    #print("8 in cli.py")
     if ctx.obj.mkdir:
         setup_directories(work_dir)
         ctx.obj.mkdir = False
@@ -205,7 +198,6 @@ def validate(ctx,config,work_dir):
     help='Path to the work directory. [Default = ./riscof_work]')
 @click.pass_context
 def generate(ctx,suite,env,work_dir):
-    #print("9 in cli.py")
     if ctx.obj.mkdir:
         setup_directories(work_dir)
         ctx.obj.mkdir = False
@@ -234,7 +226,6 @@ def generate(ctx,suite,env,work_dir):
         help='Path to the work directory. [Default = ./riscof_work]')
 @click.pass_context
 def testlist(ctx,config,work_dir,suite,env):
-    #print("10 in cli.py")
     setup_directories(work_dir)
     ctx.obj.mkdir = False
     ctx.invoke(generate,suite=suite,env=env,work_dir=work_dir)
@@ -272,7 +263,6 @@ def testlist(ctx,config,work_dir,suite,env):
 @click.option('--no-clean',is_flag=True,help="Do not clean work directory(if exists).")
 @click.pass_context
 def run(ctx,config,work_dir,suite,env,no_browser,dbfile,testfile,no_ref_run,no_dut_run,no_clean):
-    #print("11 in cli.py")
     exitcode = 0
     signature_data = 0
     clean =  (testfile is not None or dbfile is not None or no_clean)
@@ -333,8 +323,7 @@ def run(ctx,config,work_dir,suite,env,no_browser,dbfile,testfile,no_ref_run,no_d
     report_objects['results'] = framework.run(dut, base, ctx.obj.isa_file,
                                               ctx.obj.platform_file, work_dir, cntr_args,signature_data)
     
-    #report_objects['sig'] = framework.run_sig(signature_data)
-    #print(report_objects)
+
 
     report_objects['num_passed'] = 0
     #report_objects['num_failed'] = 0
@@ -345,24 +334,16 @@ def run(ctx,config,work_dir,suite,env,no_browser,dbfile,testfile,no_ref_run,no_d
         #else:
             #report_objects['num_failed'] += 1
             #exitcode = 1
-    #print(report_objects,'LOOP')
-    #a = list(report_objects.keys())[13]
-    #print(a)
-    #b = report_objects[a]
-    #print('b',b)
 
-    
-    #print(type(report_objects),'LOOP1')
     with open(constants.html_template, "r") as report_template:
         template = Template(report_template.read())
 
     output = template.render(report_objects)
-    #print(output,'b')
+
     reportfile = os.path.join(work_dir, "report.html")
     with open(reportfile, "w") as report:
         report.write(output)
-    #print("after-loop")
-    #print(output)
+
     shutil.copyfile(constants.css,
                     os.path.join(work_dir, "style.css"))
 
@@ -399,7 +380,6 @@ def run(ctx,config,work_dir,suite,env,no_browser,dbfile,testfile,no_ref_run,no_d
     )
 @click.pass_context
 def coverage(ctx,config,work_dir,suite,env,no_browser,cgf_file):
-    #print("12 in cli.py")
     setup_directories(work_dir)
     ctx.obj.mkdir = False
     ctx.obj.config, ctx.obj.config_dir = read_config(config)
@@ -492,7 +472,6 @@ def coverage(ctx,config,work_dir,suite,env,no_browser,cgf_file):
     help="Print version of the local architectural test suite.",
     cls=CustomOption,mutually_exclusive=['--clone','--update'])
 def arch_test(dir,get_version,clone,update,show_version):
-    #print("13 in cli.py")
     if(clone):
         if os.path.exists(dir):
             shutil.rmtree(dir)
@@ -520,7 +499,6 @@ def arch_test(dir,get_version,clone,update,show_version):
         type=click.Path(resolve_path=True,writable=True),
         help='Path to the work directory.')
 def setup(dutname,refname,work_dir):
-    #print("14 in cli.py")
     logger.info("Setting up sample plugin requirements [Old files will be overwritten]")
     try:
         cwd = os.getcwd()
