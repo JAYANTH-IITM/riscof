@@ -447,6 +447,12 @@ def find_tdata1_icount(signature_data):
         if v.strip() == '300053c0':
             tdata1_icount = v.strip()
             break
+        elif v.strip() == '30005340':
+            tdata1_icount = v.strip()
+            break
+        elif v.strip() == '300007c0':
+            tdata1_icount = v.strip()
+            break
         else:
             tdata1_icount = 'No Value Found'
     return (tdata1_icount)
@@ -584,7 +590,7 @@ def run_tests(dut, base, ispec, pspec, work_dir, cntr_args,signature_data):
             }
             results.append(res)
 
-        elif tdata1_icount =='300053c0':
+        elif tdata1_icount =='300053c0' or '30005340' or '300007c0':
             res = {
                 'name':
                 file,
