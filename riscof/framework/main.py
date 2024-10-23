@@ -78,7 +78,6 @@ def find_elf_size(elf):
         return (sum([segment['p_memsz'] for segment in elffile.iter_segments()]),code_size,data_size,sign_size)
 
 def run_coverage(base, dut_isa_spec, dut_platform_spec, work_dir, cgf_file=None):
-    #print("run coverage 2")
     '''
         Entry point for the framework module. This function initializes and sets up the required
         variables for the tests to run.
@@ -117,9 +116,7 @@ def run_coverage(base, dut_isa_spec, dut_platform_spec, work_dir, cgf_file=None)
 
 
     logger.info("Merging Coverage reports")
-    #
-    #print("printing here")
-    #print(file_path)
+    
     cov_files = []
     test_stats = []
     for entry in test_pool:

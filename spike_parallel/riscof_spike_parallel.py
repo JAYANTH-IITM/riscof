@@ -116,8 +116,6 @@ class spike_parallel(pluginTemplate):
         if "Sdtrig" in ispec['ISA']:
             self.isa += 'sdtrig'
             self.flen = '0'
-            
-
 
         compiler = "riscv32-unknown-elf-gcc".format(self.xlen)
         if shutil.which(compiler) is None:

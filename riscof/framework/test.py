@@ -371,127 +371,103 @@ def generate_test_pool(ispec, pspec, workdir, dbfile = None):
 
     return (test_list, test_pool)
 
-def read_signature_file(file_path):
-    
-    signature_data = []
-    with open(file_path, 'r') as file:
-        for line in file:
-            signature_data.append(line)
-            if 'deadbeef' in line:
-                break
-    return signature_data
+def read_signature_file(file_path , isa):
+    if (isa == 'RV32ISUZicsr_Sdtrig'):
+        signature_data = []
+        with open(file_path, 'r') as file:
+            for line in file:
+                signature_data.append(line)
+                if 'deadbeef' in line:
+                    break 
+        return signature_data
+    elif (isa == 'RV64ISUZicsr_Sdtrig'):
+        signature_data = []
+        with open(file_path, 'r') as file:
+            lines = file.readlines()
+            for i in range(0, len(lines), 2):
+                lsb = lines[i].strip()       # Read LSB line and strip newline
+                msb = lines[i + 1].strip()   # Read MSB line and strip newline
 
-
+                if 'deadbeef' in lsb or 'deadbeef' in msb:
+                    break
+                combined = msb + lsb        
+                signature_data.append(combined)
+        return signature_data
+    	
 def clean_data(signature_data):
-    return signature_data[1:-1]
+    return signature_data[1:]
 
-def find_mstatus(signature_data):
-    mstatus = None
-    for v in signature_data:
-        if v.strip() == '00001800':
-            mstatus = v.strip()
-            break
-        else:
-            mstatus = 'No Value Found'
-    return (mstatus)
-    
-def find_tinfo(signature_data):
-    tinfo = None
-    for v in signature_data:
-        if v.strip() == '0100807c':
-            tinfo = v.strip()
-            break
-        else:
-            tinfo = 'No Value Found'
-    return (tinfo)
+def find_misa(signature_data):
+    misa = None
+    misa = signature_data[0] 
+    misa = misa.strip()
+    return (misa)
+
+def find_mstatus_mie(signature_data):
+    mstatus_mie = None
+    mstatus_mie = signature_data[1] 
+    mstatus_mie = mstatus_mie.strip()
+    return mstatus_mie
 
 def find_tselect(signature_data):
     tselect = None
-    for v in signature_data:
-        if v.strip() == '00000000':
-            tselect = v.strip()
-            break
-        else:
-            tselect = 'No Value Found'
+    tselect = signature_data[2] 
+    tselect = tselect.strip()
     return (tselect)
 
-def find_tcontrol(signature_data):
-    tcontrol = None
-    for v in signature_data:
-        if v.strip() == '00000008':
-            tcontrol = v.strip()
-            break
-        else:
-            tcontrol = 'No Value Found'
-    return (tcontrol)
+def find_tinfo(signature_data):
+    tinfo = None
+    tinfo = signature_data[3] 
+    tinfo = tinfo.strip()
+    return (tinfo)
 
 def find_tdata1_bt(signature_data):
     tdata1_bt = None
-    for v in signature_data:
-        if v.strip() == '6000005c':
-            tdata1_bt = v.strip()
-            break
-        elif v.strip() == '6000005a':
-            tdata1_bt = v.strip()
-            break
-        elif v.strip() == '60000059':
-            tdata1_bt = v.strip()
-            break
-        else:
-            tdata1_bt = 'No Value Found'
+    tdata1_bt = signature_data[4] 
+    tdata1_bt = tdata1_bt.strip()
     return (tdata1_bt)
 
-def find_tdata1_icount(signature_data):
-    tdata1_icount = None
-    for v in signature_data:
-        if v.strip() == '300053c0':
-            tdata1_icount = v.strip()
-            break
-        elif v.strip() == '30005340':
-            tdata1_icount = v.strip()
-            break
-        elif v.strip() == '300007c0':
-            tdata1_icount = v.strip()
-            break
-        else:
-            tdata1_icount = 'No Value Found'
-    return (tdata1_icount)
+def find_tdata1_st(signature_data):
+    tdata1_st = None
+    tdata1_st = signature_data[5] 
+    tdata1_st = tdata1_st.strip()
+    return (tdata1_st)
 
 def find_tdata2(signature_data):
     tdata2 = None
-    for v in signature_data:
-        if v.strip() == '80002000':
-            tdata2 = v.strip()
-            break
-        else:
-            tdata2 = 'No Value Found'
+    tdata2 = signature_data[6] 
+    tdata2 = tdata2.strip()
     return (tdata2)
+
+def find_instr(signature_data):
+    instr = None
+    instr = signature_data[6] 
+    instr = instr.strip()
+    return (instr)
 
 def find_mcause(signature_data):
     mcause = None
-    for v in signature_data:
-        if v.strip() == '00000003':
-            mcause = v.strip()
-            break
-        else:
-            mcause = 'breakpoint exception has not occurred'
+    mcause = signature_data[7] 
+    mcause = mcause.strip()
     return (mcause)
 
-def find_ini_icount(tdata1_icount):
-    ini_count = None
-    tdata1_value = int(tdata1_icount, 16)
-    ini_count = (tdata1_value >> 10) & 0x3F 
-    return str(ini_count)
+def find_mepc(signature_data):
+    mepc = None
+    mepc = signature_data[8] 
+    mepc = mepc.strip()
+    return (mepc)
 
-def find_final_count(signature_data):
-    final_count = None
-    for v in signature_data:  
-        if v.strip() == '00000001':
-            final_count = v.strip()
-            break
-        else:
-            final_count = 'breakpoint exception has not occurred'
-    return (final_count)
+def find_mtval(signature_data):
+    mtval = None
+    mtval = signature_data[9] 
+    mtval = mtval.strip()
+    return (mtval)
+
+def find_tdata1_final(signature_data):
+    tdata1_final = None
+    tdata1_final = signature_data[10] 
+    tdata1_final = tdata1_final.strip()
+    return (tdata1_final)
 
 
 def run_tests(dut, base, ispec, pspec, work_dir, cntr_args,signature_data):
@@ -515,6 +491,7 @@ def run_tests(dut, base, ispec, pspec, work_dir, cntr_args,signature_data):
         :return: A list of dictionary objects containing the necessary information
             required to generate the report.
     '''
+    isa = ispec['ISA']
 
     if cntr_args[1] is not None:
         test_list = utils.load_yaml(cntr_args[1])
@@ -558,20 +535,25 @@ def run_tests(dut, base, ispec, pspec, work_dir, cntr_args,signature_data):
         ref = os.path.join(base_test_list[file]['work_dir'],base.name[:-1]+".signature")
         result, diff = compare_signature(res, ref)
 
-        signature_data = read_signature_file(res)
+        signature_data = read_signature_file(res, isa)
         signature_data = clean_data(signature_data)
-        mstatus = find_mstatus(signature_data)
+        mstatu_mie = find_mstatus_mie(signature_data)
         tinfo = find_tinfo(signature_data)
         tselect = find_tselect(signature_data)
-        tcontrol = find_tcontrol(signature_data)
         tdata1_bt = find_tdata1_bt(signature_data)
-        tdata2 = find_tdata2(signature_data)
-        mcause = find_mcause(signature_data)
-        tdata1_icount = find_tdata1_icount(signature_data)
-        ini_count = find_ini_icount(tdata1_icount)
-        final_count= find_final_count(signature_data)
+        tdata1_st = find_tdata1_st(signature_data)
+        if tdata1_st[0] == '6':
+            tdata2 = find_tdata2(signature_data)
+        elif tdata1_st[0] == '3':
+            instr = find_instr(signature_data)
 
-        if tdata1_bt == '6000005c' or '6000005a' or '60000059':
+        mcause = find_mcause(signature_data)
+        mepc = find_mepc(signature_data)
+        mtval = find_mtval(signature_data)
+        tdata1_final = find_tdata1_final(signature_data)
+        misa = find_misa(signature_data)
+        #tcontrol_final = find_tcontrol_final(signature_data)
+        if tdata1_st[0] == '6':
             res = {
                 'name':
                 file,
@@ -580,8 +562,9 @@ def run_tests(dut, base, ispec, pspec, work_dir, cntr_args,signature_data):
                 'commit_id':
                 testentry['commit_id'],
                 'log':
-                'commit_id:' + testentry['commit_id'] + "\nMACROS:\n" + "\n".join(testentry['macros']) + '\nsignature: \n' +  '\nmstatus: ' + mstatus + '\ntinfo: ' + tinfo + \
-                '\ntselect: ' + tselect + '\ntcontrol: ' + tcontrol + '\ntdata1 before trigger : ' + tdata1_bt + '\ntdata2: ' + tdata2 + '\nmcause: ' + mcause +
+                'commit_id:' + testentry['commit_id'] + "\nMACROS:\n" + "\n".join(testentry['macros']) + '\nCoverpoints: \n' + '\nmisa ' + misa +  '\nmstatus: ' + mstatu_mie + '\ntinfo: ' + tinfo + \
+                '\ntselect: ' + tselect   + '\ntdata1 before trigger : ' + tdata1_bt + '\ntdata1 setting value : ' + tdata1_st + '\ntdata2: ' + tdata2 + '\nmcause: ' + mcause +\
+                '\nmepc: ' + mepc + '\nmtval: ' + mtval + '\ntdata1 after trigger : ' + tdata1_final + #'\ntcontrol after trigger : ' + tcontrol_final +
                 ("" if result == "Passed" else diff),
                 'path':
                 work_dir,
@@ -590,7 +573,7 @@ def run_tests(dut, base, ispec, pspec, work_dir, cntr_args,signature_data):
             }
             results.append(res)
 
-        elif tdata1_icount =='300053c0' or '30005340' or '300007c0':
+        elif tdata1_st[0] =='3':
             res = {
                 'name':
                 file,
@@ -599,9 +582,9 @@ def run_tests(dut, base, ispec, pspec, work_dir, cntr_args,signature_data):
                 'commit_id':
                 testentry['commit_id'],
                 'log':
-                'commit_id:' + testentry['commit_id'] + "\nMACROS:\n" + "\n".join(testentry['macros']) + '\nsignature: \n' +  '\nmstatus: ' + mstatus + '\ntinfo: ' + tinfo + \
-                '\ntselect: ' + tselect + '\ntcontrol: ' + tcontrol + '\ntdata1 before trigger : ' + tdata1_icount + '\nInitial Count Value : ' + ini_count + '\nfinal Count Value : ' + final_count + \
-                '\nmcause: ' + mcause +
+                'commit_id:' + testentry['commit_id'] + "\nMACROS:\n" + "\n".join(testentry['macros']) + '\nsignature: \n' + '\nmisa ' + misa  +  '\nmstatus: ' + mstatu_mie + '\ntinfo: ' + tinfo + \
+                '\ntselect: ' + tselect  + '\ntdata1 before trigger : ' + tdata1_bt + '\ntdata1 setting value : ' + tdata1_st + '\ninstruction execution : ' + instr + \
+                '\nmcause: ' + mcause + '\nmepc: ' + mepc + '\nmtval: ' + mtval + '\ntdata1 after trigger : ' + tdata1_final + 
                 ("" if result == "Passed" else diff),
                 'path':
                 work_dir,
